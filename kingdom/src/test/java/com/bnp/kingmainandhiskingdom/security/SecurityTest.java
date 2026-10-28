@@ -118,6 +118,13 @@ class SecurityTest {
         mockMvc.perform(get("/actuator/info")).andExpect(status().isForbidden());
     }
 
+    @Test
+    @WithMockUser(roles = "KING")
+    void theKingPassesTheActuatorRuleButTheEndpointIsNotExposed() throws Exception {
+        // allowed by the URL rule, but only "health" is exposed: so 404 instead of 403
+        mockMvc.perform(get("/actuator/env")).andExpect(status().isNotFound());
+    }
+
     // ---- frontend and documentation stay reachable --------------------------------------------
 
     @Test
