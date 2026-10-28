@@ -76,6 +76,13 @@ A real identity provider (Entra ID, Keycloak, ...) is not available on a locked-
 
 The flow: `/oauth2/authorization/kingdom-idp`, login at the IdP, the code is exchanged for tokens (the ID token is validated with the keys of the IdP), `SsoRoleMapper` turns groups into roles, the kingdom issues its own JWT and the frontend picks it up (`/sso`). The code is in `SsoSecurityConfig` and `application-idp.yaml`. Without the profile `idp` the rest of the application does nothing with the IdP.
 
+## Branches
+
+| Branch | What |
+|---|---|
+| `security` | the project as the participants start the course: all the pieces of day 1 and 2, no solutions |
+| `solution` | the same project with **every exercise solved** and [SOLUTIONS.md](SOLUTIONS.md) with the answer to every question (instructor only) |
+
 ## Exercises
 
 See [EXERCISES.md](EXERCISES.md): about 20 exercises on Spring Security (day 1 and 2), JPA inheritance and DTOs, with a suggested schedule.

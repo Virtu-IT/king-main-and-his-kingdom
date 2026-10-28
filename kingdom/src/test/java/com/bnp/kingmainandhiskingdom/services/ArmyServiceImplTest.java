@@ -3,7 +3,9 @@ package com.bnp.kingmainandhiskingdom.services;
 import com.bnp.kingmainandhiskingdom.domain.Knight;
 import com.bnp.kingmainandhiskingdom.domain.Person;
 import com.bnp.kingmainandhiskingdom.domain.Profession;
+import com.bnp.kingmainandhiskingdom.domain.Weapon;
 import com.bnp.kingmainandhiskingdom.domain.Wizard;
+import com.bnp.kingmainandhiskingdom.repository.EquipmentRepository;
 import com.bnp.kingmainandhiskingdom.exception.AlreadyExistsException;
 import com.bnp.kingmainandhiskingdom.exception.ConflictException;
 import com.bnp.kingmainandhiskingdom.exception.PersonNotFoundException;
@@ -21,6 +23,8 @@ class ArmyServiceImplTest {
 
     @Autowired
     private ArmyService armyService;
+    @Autowired
+    private EquipmentRepository equipment;
 
     @Test
     void recruitPerson() {
@@ -112,6 +116,21 @@ class ArmyServiceImplTest {
         assertThrows(ConflictException.class, () -> armyService.giveEquipment("Gaheris", sword));
         assertThrows(com.bnp.kingmainandhiskingdom.exception.EquipmentNotFoundException.class,
                 () -> armyService.giveEquipment("Gaheris", 424242L));
+    }
+
+    @Test
+    void deletingAKnightKeepsHisEquipment() {
+        Weapon spear = equipment.save(new Weapon("Spear of Doom", 2.0, 40, "PIERCING"));
+        armyService.recruitPerson(new Knight("Doomed", 40, "Squire", "Gloomy"));
+        armyService.giveEquipment("Doomed", spear.getId());
+        assertEquals(1, armyService.equipmentOf("Doomed").size());
+
+        assertTrue(armyService.deletePerson("Doomed"));
+
+        // the equipment is still there (Hibernate set knight_id to NULL) and can be given to somebody else
+        assertTrue(equipment.findById(spear.getId()).isPresent());
+        armyService.recruitPerson(new Knight("Heir", 20, "Squire", "Fresh"));
+        assertEquals(1, armyService.giveEquipment("Heir", spear.getId()).size());
     }
 
     @Test
