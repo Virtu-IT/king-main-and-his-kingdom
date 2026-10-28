@@ -74,6 +74,15 @@ public class RefreshTokenService {
         tokens.findByTokenHash(hash(token)).ifPresent(tokens::delete);
     }
 
+    /**
+     * Every refresh token of a user stops working (after a password change, or when an account is blocked).
+     * Access tokens that were already issued stay valid until they expire: that is why they are short-lived.
+     */
+    @Transactional
+    public void revokeAll(String username) {
+        tokens.deleteByUsername(username);
+    }
+
     static String hash(String token) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));

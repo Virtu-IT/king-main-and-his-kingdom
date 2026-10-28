@@ -127,6 +127,20 @@ class RefreshTokenTest {
     }
 
     @Test
+    void aPasswordChangeRevokesAllRefreshTokens() throws Exception {
+        accounts.create("pwchanger", "pwchanger1234", Set.of("SUBJECT"));
+        String refresh = login("pwchanger", "pwchanger1234").get("refreshToken").asString();
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/users/pwchanger/password")
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("pwchanger", "pwchanger1234"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"oldPassword\":\"pwchanger1234\",\"newPassword\":\"another-password-9\"}"))
+                .andExpect(status().isNoContent());
+
+        postJson("/api/auth/refresh", "{\"refreshToken\":\"" + refresh + "\"}").andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void logoutRevokesTheRefreshToken() throws Exception {
         accounts.create("leaver", "leaver1234", Set.of("SUBJECT"));
         String refresh = login("leaver", "leaver1234").get("refreshToken").asString();

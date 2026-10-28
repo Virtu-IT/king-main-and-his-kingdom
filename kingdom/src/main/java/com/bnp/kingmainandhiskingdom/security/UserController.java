@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final AccountService accountService;
+    private final RefreshTokenService refreshTokens;
 
-    public UserController(AccountService accountService) {
+    public UserController(AccountService accountService, RefreshTokenService refreshTokens) {
         this.accountService = accountService;
+        this.refreshTokens = refreshTokens;
     }
 
     /** You may look up yourself; the king may look up everybody. #username is the path variable. */
@@ -37,6 +39,8 @@ public class UserController {
     @PreAuthorize("#username.equalsIgnoreCase(authentication.name)")
     public ResponseEntity<Void> changePassword(@PathVariable String username, @Valid @RequestBody PasswordChange change) {
         accountService.changePassword(username, change.oldPassword(), change.newPassword());
+        // a stolen refresh token must not survive the password change
+        refreshTokens.revokeAll(username);
         return ResponseEntity.noContent().build();
     }
 
