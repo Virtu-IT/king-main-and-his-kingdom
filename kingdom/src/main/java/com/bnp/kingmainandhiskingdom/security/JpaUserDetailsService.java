@@ -13,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class JpaUserDetailsService implements UserDetailsService, UserDetailsPasswordService {
 
     private final AppUserRepository users;
+    private final LoginAttemptService loginAttempts;
 
-    public JpaUserDetailsService(AppUserRepository users) {
+    public JpaUserDetailsService(AppUserRepository users, LoginAttemptService loginAttempts) {
         this.users = users;
+        this.loginAttempts = loginAttempts;
     }
 
     @Override
@@ -25,6 +27,7 @@ public class JpaUserDetailsService implements UserDetailsService, UserDetailsPas
         return User.withUsername(user.getUsername())
                 .password(user.getPasswordHash())
                 .roles(user.getRoles().toArray(String[]::new))
+                .accountLocked(loginAttempts.isLocked(user.getUsername())) // B3
                 .build();
     }
 

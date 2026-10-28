@@ -31,6 +31,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return images.response(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(TooManyAttemptsException.class)
+    public ResponseEntity<byte[]> handleTooManyAttempts(TooManyAttemptsException ex) {
+        ResponseEntity<byte[]> response = images.response(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .headers(response.getHeaders())
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+                .body(response.getBody());
+    }
+
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<byte[]> handleAlreadyExistsException(AlreadyExistsException ex) {
         return images.response(HttpStatus.CONFLICT, ex.getMessage());

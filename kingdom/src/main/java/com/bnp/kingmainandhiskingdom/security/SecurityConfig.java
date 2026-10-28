@@ -8,10 +8,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationEventPublisher;
+import org.springframework.security.authorization.SpringAuthorizationEventPublisher;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -62,6 +65,12 @@ public class SecurityConfig {
                 "pbkdf2", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8(),
                 "bcrypt", new BCryptPasswordEncoder());
         return new DelegatingPasswordEncoder("pbkdf2", encoders);
+    }
+
+    /** B5: makes Spring Security publish an AuthorizationDeniedEvent when an access is refused (URL rule or @PreAuthorize). */
+    @Bean
+    AuthorizationEventPublisher authorizationEventPublisher(ApplicationEventPublisher publisher) {
+        return new SpringAuthorizationEventPublisher(publisher);
     }
 
     @Bean
@@ -142,7 +151,8 @@ public class SecurityConfig {
             if (request.getHeader("X-Requested-With") == null) {
                 response.setHeader("WWW-Authenticate", "Basic realm=\"kingdom\"");
             }
-            write(response, images.response(HttpStatus.UNAUTHORIZED, "Authentication required: " + exception.getMessage()));
+            // always the same text: "account is locked" or "bad credentials" would reveal which accounts exist
+            write(response, images.response(HttpStatus.UNAUTHORIZED, "Authentication required"));
         };
     }
 

@@ -26,16 +26,20 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final AccountService accountService;
+    private final LoginAttemptService loginAttempts;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, AccountService accountService) {
+    public AuthController(AuthenticationManager authenticationManager, JwtService jwtService, AccountService accountService,
+                          LoginAttemptService loginAttempts) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.accountService = accountService;
+        this.loginAttempts = loginAttempts;
     }
 
     /** Checks username + password; a wrong combination ends up as 401 via the AuthenticationEntryPoint. */
     @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
+        loginAttempts.assertNotLocked(request.username()); // B3: 429 with Retry-After, also for the correct password
         Authentication authentication = authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken.unauthenticated(request.username(), request.password()));
         JwtService.IssuedToken issued = jwtService.issue(authentication);
