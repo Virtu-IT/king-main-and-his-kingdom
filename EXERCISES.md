@@ -113,7 +113,7 @@ The course book (17.2) describes API keys. Build your own `OncePerRequestFilter`
 3. After 3 failed attempts the user is blocked for 1 minute: `/api/auth/login` then returns 429 with `Retry-After`. Use your own exception and `GlobalExceptionHandler`, or `UserDetails.isAccountNonLocked()`.
 4. A successful login resets the counter.
 
-**Done when:** a test does four wrong logins, the fifth one with the **correct** password is also refused, and after the time has passed (inject a `Clock`) it works again.
+**Done when:** a test does three wrong logins, the fourth one with the **correct** password is also refused, and after the time has passed (inject a `Clock`) it works again.
 *Careful:* give an unknown user the same answer as a known one, otherwise you leak which accounts exist.
 
 ### B4 🔥 Refresh tokens (90 min)
@@ -135,7 +135,7 @@ Log security events with an `@EventListener`:
 
 ### B6 🔥 Experience sessions and CSRF (90 min)
 The API is stateless and switches CSRF off. Build a small "classic" part to see why that has to be different. Use **no** extra dependencies (so no Thymeleaf): a controller that returns HTML is enough.
-1. An extra `SecurityFilterChain` with `@Order(1)` for `/legacy/**`: `formLogin()` with sessions and **CSRF on**.
+1. An extra `SecurityFilterChain` for `/legacy/**` (`securityMatcher`): `formLogin()` with sessions and **CSRF on**. Chains are tried in order and the first one whose matcher fits wins, so give it an `@Order` lower than the API chain (which matches every request and must come last).
 2. A `@RestController` that returns `text/html`: `GET /legacy/hello` with a form that does `POST /legacy/note`. You get the CSRF token with a method parameter `CsrfToken token`; put it in a hidden field named `token.getParameterName()`.
 3. First let the form post without the CSRF token: what is the answer? Then add the token and look at the `JSESSIONID` cookie.
 4. Explain why this is not needed for the JWT API, and what can go wrong if you store a JWT in a cookie.
@@ -147,7 +147,7 @@ The API is stateless and switches CSRF off. Build a small "classic" part to see 
 1. Create a keystore: `keytool -genkeypair -alias kingdom -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore kingdom.p12 -validity 365`.
 2. In a new profile `https` set the `server.ssl.*` properties (see the course book 17.7: key store versus trust store).
 3. Open <https://localhost:8443>. What does the browser say about the (self-signed) certificate? With `curl` you use `-k`.
-4. Extra: `requiresChannel().anyRequest().requiresSecure()` or the HSTS header (`headers.httpStrictTransportSecurity`).
+4. Extra: the HSTS header (`headers.httpStrictTransportSecurity`). What does it do, and why is it only sent over HTTPS? How would you redirect plain HTTP to HTTPS in this Spring Security version?
 
 **Done when:** `https://localhost:8443` works and you can explain why Basic and JWT are unsafe without HTTPS.
 
