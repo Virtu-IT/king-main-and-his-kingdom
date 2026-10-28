@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Serves the bundled Angular app from classpath:/static and falls back to index.html for
  * client-side routes (e.g. /persons), so a browser refresh on an Angular route keeps working.
- * Your own controllers (/api/**) always win over this handler.
+ * Your own controllers (/api/**) always win over this handler; unknown /api/** and /actuator/** URLs give a 404.
  */
 @Configuration
 public class AngularFrontendConfig implements WebMvcConfigurer {
@@ -30,7 +30,9 @@ public class AngularFrontendConfig implements WebMvcConfigurer {
                             return requested;
                         }
                         boolean looksLikeFile = resourcePath.substring(resourcePath.lastIndexOf('/') + 1).contains(".");
-                        if (resourcePath.startsWith("api/") || looksLikeFile) {
+                        // server URLs are never client-side routes: an unknown /api/... or /actuator/... is a real 404,
+                        // not a (200) copy of index.html
+                        if (resourcePath.startsWith("api/") || resourcePath.startsWith("actuator/") || looksLikeFile) {
                             return null;
                         }
                         Resource index = new ClassPathResource("static/index.html");
