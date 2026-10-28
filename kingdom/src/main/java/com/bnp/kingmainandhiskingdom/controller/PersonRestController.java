@@ -1,6 +1,7 @@
 package com.bnp.kingmainandhiskingdom.controller;
 
 import com.bnp.kingmainandhiskingdom.domain.Profession;
+import com.bnp.kingmainandhiskingdom.dto.EquipmentDto;
 import com.bnp.kingmainandhiskingdom.dto.Mappers;
 import com.bnp.kingmainandhiskingdom.dto.PersonDto;
 import com.bnp.kingmainandhiskingdom.exception.PersonNotFoundException;
@@ -63,6 +64,26 @@ public class PersonRestController {
     @PreAuthorize("hasAnyRole('KING', 'KNIGHT')")
     public PersonDto trainPerson(@PathVariable String name, @Valid @RequestBody TrainingRequest request) {
         return Mappers.toDto(armyService.trainPerson(name, request.profession()));
+    }
+
+    /** C6: releases a person from their profession. */
+    @DeleteMapping("/{name}/training")
+    @PreAuthorize("hasAnyRole('KING', 'KNIGHT')")
+    public PersonDto releasePerson(@PathVariable String name) {
+        return Mappers.toDto(armyService.releasePerson(name));
+    }
+
+    /** C4: the equipment of a knight. */
+    @GetMapping("/{name}/equipment")
+    public List<EquipmentDto> equipmentOf(@PathVariable String name) {
+        return armyService.equipmentOf(name).stream().map(Mappers::toDto).toList();
+    }
+
+    /** C4: give a piece of equipment to a knight. */
+    @PostMapping("/{name}/equipment/{equipmentId}")
+    @PreAuthorize("hasAnyRole('KING', 'KNIGHT')")
+    public List<EquipmentDto> giveEquipment(@PathVariable String name, @PathVariable Long equipmentId) {
+        return armyService.giveEquipment(name, equipmentId).stream().map(Mappers::toDto).toList();
     }
 
     public record TrainingRequest(@NotNull(message = "Profession is required") Profession profession) {

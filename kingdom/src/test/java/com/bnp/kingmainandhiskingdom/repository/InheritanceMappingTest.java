@@ -1,7 +1,11 @@
 package com.bnp.kingmainandhiskingdom.repository;
 
 import com.bnp.kingmainandhiskingdom.domain.Armor;
+import com.bnp.kingmainandhiskingdom.domain.Castle;
 import com.bnp.kingmainandhiskingdom.domain.Catapult;
+import com.bnp.kingmainandhiskingdom.domain.Farm;
+import com.bnp.kingmainandhiskingdom.domain.Peasant;
+import com.bnp.kingmainandhiskingdom.domain.Tower;
 import com.bnp.kingmainandhiskingdom.domain.Equipment;
 import com.bnp.kingmainandhiskingdom.domain.Knight;
 import com.bnp.kingmainandhiskingdom.domain.Person;
@@ -45,6 +49,8 @@ class InheritanceMappingTest {
     private WeaponRepository weaponRepository;
     @Autowired
     private WarMachineRepository warMachineRepository;
+    @Autowired
+    private BuildingRepository buildingRepository;
 
     private long count(String sql) {
         return ((Number) em.createNativeQuery(sql).getSingleResult()).longValue();
@@ -113,6 +119,40 @@ class InheritanceMappingTest {
         assertEquals(1, knights.size());
         assertEquals("Percival", knights.get(0).getName());
         assertEquals(1, knightRepository.findByKnightRank("Knight").size());
+    }
+
+    // ---- C1: a fourth subclass in the same table ----------------------------------------------------
+
+    @Test
+    void aNewSubclassIsJustAnotherValueInTheDiscriminatorColumn() {
+        personRepository.save(new Peasant("Hob", 40, "barley"));
+        personRepository.save(new Knight("Percival", 25, "Knight", "Grey"));
+        flushAndClear();
+
+        assertEquals(2, count("select count(*) from person"));
+        assertEquals(1, count("select count(*) from person where person_type = 'PEASANT' and crop = 'barley'"));
+        // the columns of the other subclasses are NULL for a peasant, and crop is NULL for a knight
+        assertEquals(1, count("select count(*) from person where person_type = 'PEASANT' and horse_name is null and mana is null"));
+        assertEquals(1, count("select count(*) from person where person_type = 'KNIGHT' and crop is null"));
+        assertInstanceOf(Peasant.class, personRepository.findByNameIgnoreCase("hob").orElseThrow());
+    }
+
+    // ---- C3: buildings (SINGLE_TABLE) ----------------------------------------------------------------
+
+    @Test
+    void buildingsLiveInOneTableWithTheirOwnDiscriminator() {
+        buildingRepository.save(new Castle("Camelot", 7, true));
+        buildingRepository.save(new Farm("Avalon Farm", 40, "wheat"));
+        buildingRepository.save(new Tower("North tower", 30, 4));
+        flushAndClear();
+
+        assertEquals(3, count("select count(*) from building"));
+        assertEquals(1, count("select count(*) from building where building_type = 'CASTLE' and towers = 7"));
+        // a farm has no towers: the column is NULL for it
+        assertEquals(1, count("select count(*) from building where building_type = 'FARM' and towers is null"));
+        // no table per subclass
+        assertEquals(0, count("select count(*) from information_schema.tables where table_name in ('CASTLE', 'FARM', 'TOWER')"));
+        assertEquals(3, buildingRepository.findAll().size());
     }
 
     // ---- 3. JOINED -----------------------------------------------------------------------------

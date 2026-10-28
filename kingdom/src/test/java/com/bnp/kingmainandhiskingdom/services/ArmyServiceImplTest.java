@@ -5,6 +5,7 @@ import com.bnp.kingmainandhiskingdom.domain.Person;
 import com.bnp.kingmainandhiskingdom.domain.Profession;
 import com.bnp.kingmainandhiskingdom.domain.Wizard;
 import com.bnp.kingmainandhiskingdom.exception.AlreadyExistsException;
+import com.bnp.kingmainandhiskingdom.exception.ConflictException;
 import com.bnp.kingmainandhiskingdom.exception.PersonNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,52 @@ class ArmyServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> armyService.trainPerson("Youngster", Profession.NURSE));
         // but a 17-year-old may become a farmer
         assertEquals(Profession.FARMER, armyService.trainPerson("Youngster", Profession.FARMER).getProfession());
+    }
+
+    @Test
+    void aWizardCanNeverBecomeASoldier() {
+        armyService.recruitPerson(new Wizard("Gandalf", 80, 100, "Istari"));
+
+        assertThrows(IllegalArgumentException.class, () -> armyService.trainPerson("Gandalf", Profession.SOLDIER));
+        assertEquals(Profession.NURSE, armyService.trainPerson("Gandalf", Profession.NURSE).getProfession());
+    }
+
+    @Test
+    void aSoldierCanOnlyBeTrainedFromScratch_releaseFirst() {
+        armyService.recruitPerson(new Person("Farmer Giles", 40));
+        armyService.trainPerson("Farmer Giles", Profession.FARMER);
+
+        assertThrows(ConflictException.class, () -> armyService.trainPerson("Farmer Giles", Profession.SOLDIER));
+
+        assertNull(armyService.releasePerson("Farmer Giles").getProfession());
+        assertEquals(Profession.SOLDIER, armyService.trainPerson("Farmer Giles", Profession.SOLDIER).getProfession());
+        // already a soldier: again is a conflict, not a silent no-op
+        assertThrows(ConflictException.class, () -> armyService.trainPerson("Farmer Giles", Profession.SOLDIER));
+    }
+
+    @Test
+    void aBlacksmithNeedsToBe18() {
+        armyService.recruitPerson(new Person("Apprentice", 17));
+        assertThrows(IllegalArgumentException.class, () -> armyService.trainPerson("Apprentice", Profession.BLACKSMITH));
+        armyService.recruitPerson(new Person("Smith", 30));
+        assertEquals(Profession.BLACKSMITH, armyService.trainPerson("Smith", Profession.BLACKSMITH).getProfession());
+    }
+
+    @Test
+    void onlyKnightsCarryEquipment() {
+        armyService.recruitPerson(new Person("Walker", 30));
+        assertThrows(IllegalArgumentException.class, () -> armyService.equipmentOf("Walker"));
+        assertEquals(2, armyService.equipmentOf("Arthur").size());
+    }
+
+    @Test
+    void aPieceOfEquipmentHasOneOwner() {
+        armyService.recruitPerson(new Knight("Gaheris", 25, "Squire", "Dusty"));
+        Long sword = armyService.equipmentOf("Arthur").get(0).getId();
+
+        assertThrows(ConflictException.class, () -> armyService.giveEquipment("Gaheris", sword));
+        assertThrows(com.bnp.kingmainandhiskingdom.exception.EquipmentNotFoundException.class,
+                () -> armyService.giveEquipment("Gaheris", 424242L));
     }
 
     @Test

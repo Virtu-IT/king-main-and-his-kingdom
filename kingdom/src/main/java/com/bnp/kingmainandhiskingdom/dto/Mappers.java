@@ -1,6 +1,11 @@
 package com.bnp.kingmainandhiskingdom.dto;
 
 import com.bnp.kingmainandhiskingdom.domain.Armor;
+import com.bnp.kingmainandhiskingdom.domain.Building;
+import com.bnp.kingmainandhiskingdom.domain.Castle;
+import com.bnp.kingmainandhiskingdom.domain.Farm;
+import com.bnp.kingmainandhiskingdom.domain.Peasant;
+import com.bnp.kingmainandhiskingdom.domain.Tower;
 import com.bnp.kingmainandhiskingdom.domain.Catapult;
 import com.bnp.kingmainandhiskingdom.domain.Equipment;
 import com.bnp.kingmainandhiskingdom.domain.Knight;
@@ -20,6 +25,7 @@ public final class Mappers {
         return switch (person) {
             case Knight k -> new PersonDto.Knight(k.getId(), k.getName(), k.getAge(), k.getProfession(), k.getKnightRank(), k.getHorseName());
             case Wizard w -> new PersonDto.Wizard(w.getId(), w.getName(), w.getAge(), w.getProfession(), w.getMana(), w.getSchool());
+            case Peasant p -> new PersonDto.Peasant(p.getId(), p.getName(), p.getAge(), p.getProfession(), p.getCrop());
             default -> new PersonDto.Plain(person.getId(), person.getName(), person.getAge(), person.getProfession());
         };
     }
@@ -28,7 +34,25 @@ public final class Mappers {
         return switch (dto) {
             case PersonDto.Knight k -> new Knight(k.name(), k.age(), k.knightRank(), k.horseName());
             case PersonDto.Wizard w -> new Wizard(w.name(), w.age(), w.mana(), w.school());
+            case PersonDto.Peasant p -> new Peasant(p.name(), p.age(), p.crop());
             case PersonDto.Plain p -> new Person(p.name(), p.age());
+        };
+    }
+
+    public static BuildingDto toDto(Building building) {
+        return switch (building) {
+            case Castle c -> new BuildingDto.Castle(c.getId(), c.getName(), c.getTowers(), c.getHasMoat());
+            case Farm f -> new BuildingDto.Farm(f.getId(), f.getName(), f.getHectares(), f.getCrop());
+            case Tower t -> new BuildingDto.Tower(t.getId(), t.getName(), t.getHeightMeters(), t.getCrewSize());
+            default -> throw new IllegalArgumentException("Unknown building " + building.getClass().getSimpleName());
+        };
+    }
+
+    public static Building toEntity(BuildingDto dto) {
+        return switch (dto) {
+            case BuildingDto.Castle c -> new Castle(c.name(), c.towers(), c.hasMoat());
+            case BuildingDto.Farm f -> new Farm(f.name(), f.hectares(), f.crop());
+            case BuildingDto.Tower t -> new Tower(t.name(), t.heightMeters(), t.crewSize());
         };
     }
 

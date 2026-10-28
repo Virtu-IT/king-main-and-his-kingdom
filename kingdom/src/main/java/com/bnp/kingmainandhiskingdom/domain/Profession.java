@@ -4,7 +4,8 @@ package com.bnp.kingmainandhiskingdom.domain;
 public enum Profession {
     SOLDIER(21),
     FARMER(16),
-    NURSE(18);
+    NURSE(18),
+    BLACKSMITH(18);
 
     private final int minimumAge;
 

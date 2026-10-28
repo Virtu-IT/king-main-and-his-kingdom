@@ -40,6 +40,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(response.getBody());
     }
 
+    @ExceptionHandler(EquipmentNotFoundException.class)
+    public ResponseEntity<byte[]> handleEquipmentNotFoundException(EquipmentNotFoundException ex) {
+        return images.response(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<byte[]> handleConflictException(ConflictException ex) {
+        return images.response(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<byte[]> handleAlreadyExistsException(AlreadyExistsException ex) {
         return images.response(HttpStatus.CONFLICT, ex.getMessage());

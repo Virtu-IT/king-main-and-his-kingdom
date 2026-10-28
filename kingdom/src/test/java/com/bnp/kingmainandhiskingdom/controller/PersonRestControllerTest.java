@@ -131,6 +131,77 @@ class PersonRestControllerTest {
     }
 
     @Test
+    void testCreateAPeasant() throws Exception {
+        mockMvc.perform(post("/api/persons").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\": \"PEASANT\", \"name\": \"Hodge\", \"age\": 33, \"crop\": \"oats\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.type").value("PEASANT"))
+                .andExpect(jsonPath("$.crop").value("oats"));
+        mockMvc.perform(get("/api/persons/Hodge")).andExpect(jsonPath("$.crop").value("oats"));
+    }
+
+    @Test
+    void testAKnightNeedsARankAndAShortHorseName() throws Exception {
+        mockMvc.perform(post("/api/persons").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\": \"KNIGHT\", \"name\": \"Rankless\", \"age\": 30, \"horseName\": \"Silver\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Error-Message", "knightRank: A knight needs a rank"));
+
+        String longName = "H".repeat(31);
+        mockMvc.perform(post("/api/persons").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\": \"KNIGHT\", \"name\": \"Proud\", \"age\": 30, \"knightRank\": \"Squire\", \"horseName\": \"" + longName + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Error-Message", "horseName: The name of the horse can have at most 30 characters"));
+    }
+
+    @Test
+    void testAWizardCannotBeTrainedAsASoldier_andASoldierIsReleasedFirst() throws Exception {
+        mockMvc.perform(post("/api/persons/Merlin/training").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"profession\": \"SOLDIER\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Error-Message", "A wizard cannot become a SOLDIER"));
+
+        // Lancelot is a soldier already: 409 Conflict, not 400 (the request is fine, the state does not allow it)
+        mockMvc.perform(post("/api/persons/Lancelot/training").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"profession\": \"SOLDIER\"}"))
+                .andExpect(status().isConflict());
+
+        mockMvc.perform(delete("/api/persons/Lancelot/training"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profession").doesNotExist());
+        mockMvc.perform(post("/api/persons/Lancelot/training").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"profession\": \"SOLDIER\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profession").value("SOLDIER"));
+    }
+
+    @Test
+    void testTrainABlacksmith() throws Exception {
+        mockMvc.perform(post("/api/persons/Arthur/training").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"profession\": \"BLACKSMITH\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profession").value("BLACKSMITH"));
+    }
+
+    @Test
+    void testTheEquipmentOfAKnight() throws Exception {
+        mockMvc.perform(get("/api/persons/Arthur/equipment"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.name == 'Excalibur')].type").value("WEAPON"))
+                .andExpect(jsonPath("$[?(@.name == 'Plate armor')].defense").value(80));
+        mockMvc.perform(get("/api/persons/Guinevere/equipment"))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Error-Message", "Guinevere is not a knight: only knights carry equipment"));
+    }
+
+    @Test
+    void testAllKnightsWithEquipment() throws Exception {
+        mockMvc.perform(get("/api/knights"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.knight == 'Lancelot')].equipment.length()").value(2));
+    }
+
+    @Test
     void testTrainingAnUnknownPersonIsNotFound() throws Exception {
         mockMvc.perform(post("/api/persons/Nobody/training")
                         .contentType(MediaType.APPLICATION_JSON)
