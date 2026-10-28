@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** Everybody logged in may look at the arsenal; the king and his knights may add to it. */
+/** Everybody logged in may look at the arsenal; the king, his knights and the steward may add equipment. */
 @RestController
 @RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ArsenalRestController {
@@ -35,7 +35,7 @@ public class ArsenalRestController {
     }
 
     @PostMapping(path = "/equipment", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyRole('KING', 'KNIGHT')")
+    @PreAuthorize("hasAnyRole('KING', 'KNIGHT', 'STEWARD')")
     public ResponseEntity<EquipmentDto> addEquipment(@Valid @RequestBody EquipmentDto equipment) {
         return new ResponseEntity<>(Mappers.toDto(arsenalService.addEquipment(Mappers.toEntity(equipment))), HttpStatus.CREATED);
     }

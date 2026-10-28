@@ -93,6 +93,10 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // the rest of the actuator is for the king only
                         .requestMatchers("/actuator/**").hasRole("KING")
+                        // A2: statistics for the king and the knights only (URL rule)
+                        .requestMatchers("/api/stats").hasAnyRole("KING", "KNIGHT")
+                        // A3: a steward may not see the persons (the order matters: the first match wins)
+                        .requestMatchers(HttpMethod.GET, "/api/persons/**").hasAnyRole("KING", "KNIGHT", "SUBJECT")
                         // every other API call needs a login; finer rules are @PreAuthorize on the controllers
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/api/**").authenticated()

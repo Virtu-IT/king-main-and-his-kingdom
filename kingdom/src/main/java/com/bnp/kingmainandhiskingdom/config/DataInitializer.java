@@ -68,6 +68,7 @@ public class DataInitializer implements ApplicationRunner {
             accounts.create("king", "king1234", Set.of(AccountService.ROLE_KING, AccountService.ROLE_KNIGHT));
             accounts.create("lancelot", "lancelot1234", Set.of(AccountService.ROLE_KNIGHT));
             accounts.create("peasant", "peasant1234", Set.of(AccountService.ROLE_SUBJECT));
+            accounts.create("steward", "steward1234", Set.of(AccountService.ROLE_STEWARD));
         }
     }
 }

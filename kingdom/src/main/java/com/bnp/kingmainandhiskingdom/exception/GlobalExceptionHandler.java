@@ -26,6 +26,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return images.response(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<byte[]> handleUserNotFoundException(UserNotFoundException ex) {
+        return images.response(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     @ExceptionHandler(AlreadyExistsException.class)
     public ResponseEntity<byte[]> handleAlreadyExistsException(AlreadyExistsException ex) {
         return images.response(HttpStatus.CONFLICT, ex.getMessage());
