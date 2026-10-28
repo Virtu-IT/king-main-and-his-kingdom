@@ -1,10 +1,17 @@
 package com.bnp.kingmainandhiskingdom.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,6 +32,8 @@ import java.util.Set;
 @Profile("idp")
 public class SsoSecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SsoSecurityConfig.class);
+
     /** Own filter chain: this login needs a session (to remember state and nonce), the REST API does not. */
     @Bean
     @Order(0)
@@ -36,10 +45,26 @@ public class SsoSecurityConfig {
         return http.build();
     }
 
+    /**
+     * B8 task 5: with this profile the API also accepts access tokens issued by the identity provider
+     * (kingdom.sso.issuer / jwk-set-uri), next to the tokens of the kingdom itself.
+     */
+    @Bean
+    AuthenticationManagerResolver<HttpServletRequest> bearerTokenResolver(
+            JwtDecoder kingdomDecoder, JwtAuthenticationConverter kingdomConverter,
+            @Value("${kingdom.sso.issuer:http://localhost:9000}") String issuer,
+            @Value("${kingdom.sso.jwk-set-uri:http://localhost:9000/oauth2/jwks}") String jwkSetUri) {
+        return MultiIssuerAuthentication.resolver(kingdomDecoder, kingdomConverter, issuer,
+                MultiIssuerAuthentication.idpDecoder(issuer, jwkSetUri));
+    }
+
     @Bean
     AuthenticationSuccessHandler ssoSuccessHandler(JwtService jwtService) {
         return (request, response, authentication) -> {
             OidcUser user = (OidcUser) authentication.getPrincipal();
+            // B8 task 4: the claims of the ID token (never the token itself: it is a credential)
+            log.info("SSO login: iss={} aud={} sub={} groups={} nonce-present={}", user.getIssuer(), user.getAudience(),
+                    user.getSubject(), user.getClaimAsStringList("groups"), user.getNonce() != null);
             List<String> groups = user.getClaimAsStringList("groups");
             Set<String> roles = SsoRoleMapper.rolesFor(groups == null ? List.of() : groups);
             String username = user.getPreferredUsername() != null ? user.getPreferredUsername() : user.getSubject();

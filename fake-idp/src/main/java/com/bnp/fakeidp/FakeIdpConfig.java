@@ -82,7 +82,9 @@ public class FakeIdpConfig {
         return new InMemoryUserDetailsManager(
                 User.withUsername("alice").password("{noop}alice123").authorities("GROUP_royal-court").build(),
                 User.withUsername("bob").password("{noop}bob123").authorities("GROUP_guards").build(),
-                User.withUsername("carol").password("{noop}carol123").authorities("GROUP_villagers").build());
+                User.withUsername("carol").password("{noop}carol123").authorities("GROUP_villagers").build(),
+                // B8 task 3: a new group. The kingdom maps it to a role in SsoRoleMapper.
+                User.withUsername("dave").password("{noop}dave123").authorities("GROUP_merchants").build());
     }
 
     /** The one application that may use this IdP: the kingdom. */

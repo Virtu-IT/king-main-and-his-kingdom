@@ -14,7 +14,8 @@ public final class SsoRoleMapper {
     private static final Map<String, Set<String>> GROUP_ROLES = Map.of(
             "royal-court", Set.of(AccountService.ROLE_KING, AccountService.ROLE_KNIGHT),
             "guards", Set.of(AccountService.ROLE_KNIGHT),
-            "villagers", Set.of(AccountService.ROLE_SUBJECT));
+            "villagers", Set.of(AccountService.ROLE_SUBJECT),
+            "merchants", Set.of(AccountService.ROLE_STEWARD));
 
     private SsoRoleMapper() {
     }

@@ -17,6 +17,7 @@ import java.util.List;
 public class JwtService {
 
     public static final String ROLES_CLAIM = "roles";
+    public static final String ISSUER = "king-main-and-his-kingdom";
 
     private final JwtEncoder encoder;
     private final KingdomSecurityProperties properties;
@@ -41,7 +42,7 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(properties.jwtTtl());
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("king-main-and-his-kingdom")
+                .issuer(ISSUER)
                 .subject(subject)
                 .issuedAt(now)
                 .expiresAt(expiresAt)

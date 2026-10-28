@@ -20,6 +20,11 @@ class SsoRoleMapperTest {
     }
 
     @Test
+    void merchantsAreStewards() {
+        assertEquals(Set.of("STEWARD"), SsoRoleMapper.rolesFor(List.of("merchants")));
+    }
+
+    @Test
     void groupsAreCombined() {
         assertEquals(Set.of("KNIGHT", "SUBJECT"), SsoRoleMapper.rolesFor(List.of("guards", "villagers")));
     }

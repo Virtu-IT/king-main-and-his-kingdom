@@ -3,6 +3,7 @@ package com.bnp.kingmainandhiskingdom.security;
 import com.bnp.kingmainandhiskingdom.exception.HttpCatImages;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.authorization.AuthorizationEventPublisher;
 import org.springframework.security.authorization.SpringAuthorizationEventPublisher;
 import org.springframework.security.config.Customizer;
@@ -97,6 +99,7 @@ public class SecurityConfig {
     @Order(2)
     SecurityFilterChain apiFilterChain(HttpSecurity http,
                                        KingdomSecurityProperties properties,
+                                       ObjectProvider<AuthenticationManagerResolver<HttpServletRequest>> tokenResolver,
                                        JwtAuthenticationConverter jwtAuthenticationConverter,
                                        AuthenticationEntryPoint entryPoint,
                                        AccessDeniedHandler accessDeniedHandler) throws Exception {
@@ -132,10 +135,18 @@ public class SecurityConfig {
                 .addFilterBefore(new ApiKeyAuthenticationFilter(properties.apiKey(), entryPoint), BearerTokenAuthenticationFilter.class)
                 .httpBasic(b -> b.authenticationEntryPoint(entryPoint))
                 // Bearer tokens: the frontend logs in once and sends the JWT afterwards
-                .oauth2ResourceServer(o -> o
-                        .jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter))
-                        .authenticationEntryPoint(entryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                .oauth2ResourceServer(o -> {
+                    // B8: with the profile "idp" tokens of the identity provider are accepted next to our own
+                    AuthenticationManagerResolver<HttpServletRequest> resolver = tokenResolver.getIfAvailable();
+                    if (resolver != null) {
+                        o.authenticationManagerResolver(resolver);
+                    } else {
+                        o.jwt(j -> j.jwtAuthenticationConverter(jwtAuthenticationConverter));
+                    }
+                    o.authenticationEntryPoint(entryPoint).accessDeniedHandler(accessDeniedHandler);
+                })
+                // B7: tell browsers to use HTTPS only for the next year (the header is only sent over HTTPS)
+                .headers(h -> h.httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000)))
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(entryPoint)
                         .accessDeniedHandler(accessDeniedHandler));

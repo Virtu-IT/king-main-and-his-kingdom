@@ -1,0 +1,16 @@
+# Profile "https" (exercise B7): the kingdom over TLS on https://localhost:8443
+# Run with:  --spring.profiles.active=local,https
+#
+# kingdom-dev.p12 is a self-signed certificate for localhost, created with:
+#   keytool -genkeypair -alias kingdom -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore kingdom-dev.p12 \
+#           -validity 3650 -dname "CN=localhost" -ext "SAN=dns:localhost,ip:127.0.0.1"
+# It is a DEVELOPMENT certificate: the browser warns about it (nobody trusted it), and its private key is in the
+# repository. In production the certificate comes from a CA and the keystore and its password never go into git.
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: classpath:kingdom-dev.p12
+    key-store-type: PKCS12
+    key-store-password: ${KINGDOM_SSL_KEYSTORE_PASSWORD:changeit}
+    key-alias: kingdom
