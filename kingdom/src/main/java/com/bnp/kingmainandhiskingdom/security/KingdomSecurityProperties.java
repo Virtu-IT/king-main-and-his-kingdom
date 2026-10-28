@@ -10,12 +10,14 @@ import java.util.List;
  *
  * @param jwtSecret          HMAC key to sign the JWTs (min. 32 characters). Override it with the
  *                           KINGDOM_SECURITY_JWT_SECRET environment variable outside of development!
- * @param jwtTtl             how long a token is valid
+ * @param jwtTtl             how long an access token is valid (keep it short: it cannot be revoked)
+ * @param refreshTtl         how long a refresh token is valid
  * @param corsAllowedOrigins origins (protocol + host + port) that may call the API from a browser
  * @param apiKey             key for the machine-to-machine endpoints under /api/integration (min. 16 characters)
  */
 @ConfigurationProperties("kingdom.security")
-public record KingdomSecurityProperties(String jwtSecret, Duration jwtTtl, List<String> corsAllowedOrigins, String apiKey) {
+public record KingdomSecurityProperties(String jwtSecret, Duration jwtTtl, Duration refreshTtl,
+                                        List<String> corsAllowedOrigins, String apiKey) {
 
     public KingdomSecurityProperties {
         if (jwtSecret == null || jwtSecret.length() < 32) {
@@ -26,6 +28,9 @@ public record KingdomSecurityProperties(String jwtSecret, Duration jwtTtl, List<
         }
         if (jwtTtl == null) {
             jwtTtl = Duration.ofHours(1);
+        }
+        if (refreshTtl == null) {
+            refreshTtl = Duration.ofHours(8);
         }
         if (corsAllowedOrigins == null) {
             corsAllowedOrigins = List.of();
