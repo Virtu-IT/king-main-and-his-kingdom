@@ -128,7 +128,7 @@ class SecurityTest {
     // ---- frontend and documentation stay reachable --------------------------------------------
 
     @Test
-    void angularRoutesAndDocumentationNeedNoLogin() throws Exception {
+    void frontendRoutesAndDocumentationNeedNoLogin() throws Exception {
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk());
         // an unknown, non-API URL is not blocked by security (the frontend router handles it)
         int statusCode = mockMvc.perform(get("/persons")).andReturn().getResponse().getStatus();
@@ -139,7 +139,7 @@ class SecurityTest {
     // ---- CORS -------------------------------------------------------------------------------
 
     @Test
-    void corsPreflightFromTheAngularDevServerIsAllowed() throws Exception {
+    void corsPreflightFromAnAllowedOriginIsAccepted() throws Exception {
         mockMvc.perform(options("/api/persons")
                         .header("Origin", "http://localhost:4200")
                         .header("Access-Control-Request-Method", "GET")

@@ -51,9 +51,3 @@ export interface WarMachine {
   armorThicknessMm?: number;
   rangeMeters?: number;
 }
-
-/** What the HTTP interceptor turns every failed call into. */
-export interface ApiError {
-  status: number;
-  message: string;
-}

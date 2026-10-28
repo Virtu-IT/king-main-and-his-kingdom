@@ -10,12 +10,12 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 import java.io.IOException;
 
 /**
- * Serves the bundled Angular app from classpath:/static and falls back to index.html for
- * client-side routes (e.g. /persons), so a browser refresh on an Angular route keeps working.
+ * Serves the bundled React app from classpath:/static and falls back to index.html for
+ * client-side routes (e.g. /persons), so a browser refresh on a React route keeps working.
  * Your own controllers (/api/**) always win over this handler; unknown /api/** and /actuator/** URLs give a 404.
  */
 @Configuration
-public class AngularFrontendConfig implements WebMvcConfigurer {
+public class FrontendConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

@@ -20,7 +20,7 @@
     </properties>
 
     <modules>
-        <!-- the application of the course: REST, JPA, Spring Security and the Angular frontend -->
+        <!-- the application of the course: REST, JPA, Spring Security and the React frontend -->
         <module>kingdom</module>
         <!-- a separate application that plays the identity provider (OpenID Connect) for the SSO exercise -->
         <module>fake-idp</module>

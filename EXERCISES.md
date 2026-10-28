@@ -14,7 +14,7 @@ The project has two modules: `kingdom` (all exercises happen here) and `fake-idp
 Only a **JDK 21** and **IntelliJ** (which brings its own Maven). You do **not** need Docker, a database, Node.js or anything else installed:
 
 - the database is H2 in memory (empty after every restart, filled by `DataInitializer`);
-- the Angular frontend is a **finished product**: you do not need to know it or change it. All exercises are about the Java side; you only use the frontend to look at the result (test new endpoints with Swagger UI);
+- the React frontend is a **finished product**: you do not need to know it or change it. All exercises are about the Java side; you only use the frontend to look at the result (test new endpoints with Swagger UI);
 - all exercises work with the dependencies that are already in the `pom.xml`; nothing extra has to be downloaded.
 
 Internet is not required: without internet only the http.cat pictures on errors are missing (the status code and text remain). You can work without `curl`: use Swagger UI (<http://localhost:8080/swagger-ui/index.html>, *Authorize* button) or the **Security lab** page in the frontend. Windows 10/11 usually has `curl.exe` built in.
@@ -67,7 +67,7 @@ Use `@ParameterizedTest` with `@MethodSource` or `@CsvSource`.
 *Tip:* you cannot parameterize `@WithMockUser(roles = "...")`; use `.with(user("x").roles(...))` from `SecurityMockMvcRequestPostProcessors`.
 
 ### A6 ⭐ Investigate CORS (30 min)
-Without Node and without the Angular dev server: the JDK contains a simple web server (`jwebserver`, since Java 18) and `kingdom/exercises/cors-test.html` is a test page.
+Without Node and without a frontend dev server: the JDK contains a simple web server (`jwebserver`, since Java 18) and `kingdom/exercises/cors-test.html` is a test page.
 1. Start the application. Open a terminal in the project folder and start the test page on **another port**: `jwebserver -p 4200 -d kingdom/exercises` (it is in the `bin` folder of the JDK).
 2. Open <http://localhost:4200/cors-test.html> and press the buttons. The origin `http://localhost:4200` is in `kingdom.security.cors-allowed-origins`. What do you see?
 3. Open the same page through <http://127.0.0.1:4200/cors-test.html>. What is the difference and why (think of *origin* = protocol + host + port)?

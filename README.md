@@ -1,6 +1,6 @@
 # King Main and his Kingdom
 
-Spring Boot 4 demo for the course: REST, JPA (including inheritance), Spring Security and an Angular frontend that starts together with the application.
+Spring Boot 4 demo for the course: REST, JPA (including inheritance), Spring Security and a React frontend that starts together with the application.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ A Maven multi-module project. Open the **root folder** in IntelliJ (it imports b
 
 | Module | What |
 |---|---|
-| `kingdom/` | the application of the course: REST, JPA, Spring Security and the Angular frontend (`kingdom/frontend`) |
+| `kingdom/` | the application of the course: REST, JPA, Spring Security and the React frontend (`kingdom/frontend`) |
 | `fake-idp/` | a separate, tiny application that plays the identity provider for the single sign-on exercise; you do not need it for anything else |
 
 All paths below (`config/DataInitializer`, `src/main/resources/static`, ...) are relative to `kingdom/`, unless stated otherwise.
@@ -23,11 +23,11 @@ All paths below (`config/DataInitializer`, `src/main/resources/static`, ...) are
 mvn spring-boot:run -pl kingdom     # or start KingMainAndHisKingdomApplication in IntelliJ
 ```
 
-Open <http://localhost:8080>. Node.js is not needed: the built Angular app is in `kingdom/src/main/resources/static`.
+Open <http://localhost:8080>. Node.js is not needed: the built React app is in `kingdom/src/main/resources/static`.
 
 | URL | What |
 |---|---|
-| `/` | the Angular frontend |
+| `/` | the React frontend |
 | `/swagger-ui/index.html` | API documentation (Authorize: bearer token or basic) |
 | `/h2-console` | H2 console (profile `local`, JDBC URL `jdbc:h2:mem:testdb`, user/password `test`) |
 
@@ -82,12 +82,14 @@ See [EXERCISES.md](EXERCISES.md): about 20 exercises on Spring Security (day 1 a
 
 ## Changing the frontend (instructor only)
 
-The Angular source (Angular 22, standalone components) is in `kingdom/frontend/`.
+The React source (React 19, TypeScript, Vite, React Router) is in `kingdom/frontend/`. The structure is small:
+`src/api.ts` (the one place that talks to the server: adds the token, turns failures into an `ApiError`),
+`src/authStore.ts` (the login, kept in `sessionStorage`), `src/pages/` (one file per screen) and `src/styles.css`.
 
 ```bash
 cd kingdom/frontend
 npm install                  # once
-npm start                    # dev server on http://localhost:4200, proxy to :8080
+npm start                    # dev server on http://localhost:5173, /api is sent to :8080 (needs the Spring app running)
 npm run publish-to-spring    # production build -> kingdom/src/main/resources/static (commit afterwards)
 ```
 

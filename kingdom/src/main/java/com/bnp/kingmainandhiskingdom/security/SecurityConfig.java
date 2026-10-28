@@ -96,7 +96,7 @@ public class SecurityConfig {
                         // every other API call needs a login; finer rules are @PreAuthorize on the controllers
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
-                        // everything else is the Angular frontend (static files and client-side routes)
+                        // everything else is the React frontend (static files and client-side routes)
                         .anyRequest().permitAll())
                 // HTTP Basic: handy for curl and Swagger UI; credentials in every request
                 .httpBasic(b -> b.authenticationEntryPoint(entryPoint))
@@ -138,9 +138,10 @@ public class SecurityConfig {
     }
 
     /**
-     * CORS: which other origins may call this API from a browser. The Angular dev server (port 4200)
-     * is another origin than Spring Boot (port 8080). The packaged frontend is served by Spring Boot
-     * itself, so it does not need CORS at all.
+     * CORS: which other origins may call this API from a browser. A page served from another port (like
+     * the test page of the CORS exercise on port 4200) is another origin than Spring Boot (port 8080). The packaged
+     * frontend is served by Spring Boot itself, so it does not need CORS at all, and the dev server of the
+     * frontend (npm start) forwards /api with a proxy, so the browser still sees one origin.
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource(KingdomSecurityProperties properties) {
