@@ -20,8 +20,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -31,6 +34,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The security setup of the kingdom, the heart of the Spring Security course.
@@ -48,9 +52,16 @@ import java.util.List;
 @EnableConfigurationProperties(KingdomSecurityProperties.class)
 public class SecurityConfig {
 
+    /**
+     * A7: the hash starts with the algorithm in braces, e.g. {pbkdf2}... New passwords use PBKDF2; old
+     * {bcrypt} hashes still work and are upgraded after a successful login (see JpaUserDetailsService).
+     */
     @Bean
     PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        Map<String, PasswordEncoder> encoders = Map.of(
+                "pbkdf2", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8(),
+                "bcrypt", new BCryptPasswordEncoder());
+        return new DelegatingPasswordEncoder("pbkdf2", encoders);
     }
 
     @Bean
@@ -76,6 +87,7 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     SecurityFilterChain apiFilterChain(HttpSecurity http,
+                                       KingdomSecurityProperties properties,
                                        JwtAuthenticationConverter jwtAuthenticationConverter,
                                        AuthenticationEntryPoint entryPoint,
                                        AccessDeniedHandler accessDeniedHandler) throws Exception {
@@ -93,6 +105,10 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // the rest of the actuator is for the king only
                         .requestMatchers("/actuator/**").hasRole("KING")
+                        // B1: machine-to-machine calls, authenticated by the ApiKeyAuthenticationFilter
+                        .requestMatchers("/api/integration/**").hasRole("INTEGRATION")
+                        // B2: user administration
+                        .requestMatchers("/api/admin/**").hasRole("KING")
                         // A2: statistics for the king and the knights only (URL rule)
                         .requestMatchers("/api/stats").hasAnyRole("KING", "KNIGHT")
                         // A3: a steward may not see the persons (the order matters: the first match wins)
@@ -103,6 +119,8 @@ public class SecurityConfig {
                         // everything else is the Angular frontend (static files and client-side routes)
                         .anyRequest().permitAll())
                 // HTTP Basic: handy for curl and Swagger UI; credentials in every request
+                // B1: look for the api-key header before the Bearer token is processed
+                .addFilterBefore(new ApiKeyAuthenticationFilter(properties.apiKey(), entryPoint), BearerTokenAuthenticationFilter.class)
                 .httpBasic(b -> b.authenticationEntryPoint(entryPoint))
                 // Bearer tokens: the frontend logs in once and sends the JWT afterwards
                 .oauth2ResourceServer(o -> o

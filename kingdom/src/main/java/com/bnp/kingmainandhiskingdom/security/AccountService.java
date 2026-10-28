@@ -30,6 +30,27 @@ public class AccountService {
         return create(username, rawPassword, Set.of(ROLE_SUBJECT));
     }
 
+    public static final Set<String> KNOWN_ROLES = Set.of(ROLE_KING, ROLE_KNIGHT, ROLE_SUBJECT, ROLE_STEWARD);
+
+    /**
+     * B2: replaces the roles of a user. Only known roles; the king cannot take their own KING role away
+     * (otherwise nobody could manage the roles anymore).
+     */
+    @Transactional
+    public AppUser changeRoles(String callerUsername, String username, java.util.Collection<String> roles) {
+        for (String role : roles) {
+            if (!KNOWN_ROLES.contains(role)) {
+                throw new IllegalArgumentException("Unknown role '" + role + "'");
+            }
+        }
+        if (callerUsername.equalsIgnoreCase(username) && !roles.contains(ROLE_KING)) {
+            throw new IllegalArgumentException("You cannot remove your own KING role");
+        }
+        AppUser user = find(username);
+        user.setRoles(new java.util.HashSet<>(roles));
+        return user;
+    }
+
     @Transactional(readOnly = true)
     public AppUser find(String username) {
         return users.findByUsernameIgnoreCase(username)

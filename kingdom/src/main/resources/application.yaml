@@ -19,5 +19,7 @@ kingdom:
     # Development default. Override with the KINGDOM_SECURITY_JWT_SECRET environment variable anywhere else.
     jwt-secret: change-me-this-is-a-development-secret-key
     jwt-ttl: 1h
+    # Development default for the integration API. Override it with KINGDOM_SECURITY_API_KEY anywhere else.
+    api-key: dev-integration-api-key-0123456789
     cors-allowed-origins:
       - http://localhost:4200

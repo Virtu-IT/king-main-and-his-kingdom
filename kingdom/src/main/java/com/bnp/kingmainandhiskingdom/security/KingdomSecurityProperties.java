@@ -12,13 +12,17 @@ import java.util.List;
  *                           KINGDOM_SECURITY_JWT_SECRET environment variable outside of development!
  * @param jwtTtl             how long a token is valid
  * @param corsAllowedOrigins origins (protocol + host + port) that may call the API from a browser
+ * @param apiKey             key for the machine-to-machine endpoints under /api/integration (min. 16 characters)
  */
 @ConfigurationProperties("kingdom.security")
-public record KingdomSecurityProperties(String jwtSecret, Duration jwtTtl, List<String> corsAllowedOrigins) {
+public record KingdomSecurityProperties(String jwtSecret, Duration jwtTtl, List<String> corsAllowedOrigins, String apiKey) {
 
     public KingdomSecurityProperties {
         if (jwtSecret == null || jwtSecret.length() < 32) {
             throw new IllegalStateException("kingdom.security.jwt-secret must be at least 32 characters long");
+        }
+        if (apiKey == null || apiKey.length() < 16) {
+            throw new IllegalStateException("kingdom.security.api-key must be at least 16 characters long");
         }
         if (jwtTtl == null) {
             jwtTtl = Duration.ofHours(1);

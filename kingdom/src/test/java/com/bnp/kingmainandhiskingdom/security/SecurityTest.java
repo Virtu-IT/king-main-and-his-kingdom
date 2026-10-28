@@ -152,10 +152,10 @@ class SecurityTest {
     // ---- passwords ---------------------------------------------------------------------------
 
     @Test
-    void passwordsAreStoredAsBCryptHashes() {
+    void passwordsAreStoredAsSaltedPbkdf2Hashes() {
         AppUser king = users.findByUsernameIgnoreCase("KING").orElseThrow();
         assertNotEquals("king1234", king.getPasswordHash());
-        assertTrue(king.getPasswordHash().startsWith("$2"));
+        assertTrue(king.getPasswordHash().startsWith("{pbkdf2}"));
         assertTrue(passwordEncoder.matches("king1234", king.getPasswordHash()));
     }
 
