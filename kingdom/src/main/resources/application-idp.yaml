@@ -1,0 +1,24 @@
+# Profile "idp": log in with the (fake) identity provider. Start it first: com.bnp.fakeidp.FakeIdpApplication (port 9000).
+# Run the kingdom with:  --spring.profiles.active=local,idp
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kingdom-idp:
+            provider: fake-idp
+            client-id: kingdom-app
+            # fake secret of the fake IdP; a real client secret never goes into git (use an environment variable)
+            client-secret: kingdom-secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid,profile
+            client-name: Fake IdP
+        provider:
+          fake-idp:
+            # explicit endpoints, so the kingdom also starts when the IdP is not running (yet)
+            authorization-uri: http://localhost:9000/oauth2/authorize
+            token-uri: http://localhost:9000/oauth2/token
+            jwk-set-uri: http://localhost:9000/oauth2/jwks
+            user-info-uri: http://localhost:9000/userinfo
+            user-name-attribute: preferred_username

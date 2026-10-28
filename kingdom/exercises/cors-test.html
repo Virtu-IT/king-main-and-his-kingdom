@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CORS test</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+    input { width: 100%; padding: .4rem; margin: .25rem 0 .75rem; }
+    pre { background: #eee; padding: .75rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>CORS test</h1>
+  <p>This page runs on <code id="origin"></code> and calls the API on <code>http://localhost:8080</code>.</p>
+  <label>JWT (optional, from POST /api/auth/login)
+    <input id="token" placeholder="eyJ...">
+  </label>
+  <button onclick="call('/api/welcome')">GET /api/welcome</button>
+  <button onclick="call('/api/persons')">GET /api/persons</button>
+  <pre id="out">Press a button. Open the browser console (F12) and the network tab as well.</pre>
+  <script>
+    document.getElementById('origin').textContent = location.origin;
+    async function call(path) {
+      const token = document.getElementById('token').value.trim();
+      const out = document.getElementById('out');
+      try {
+        const response = await fetch('http://localhost:8080' + path, {
+          headers: token ? { Authorization: 'Bearer ' + token } : {}
+        });
+        out.textContent = response.status + ' ' + response.statusText + '\n' + (await response.text()).slice(0, 500);
+      } catch (e) {
+        out.textContent = 'Blocked or failed: ' + e.message + '\n(see the console: probably CORS)';
+      }
+    }
+  </script>
+</body>
+</html>

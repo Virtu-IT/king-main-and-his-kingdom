@@ -1,0 +1,18 @@
+server:
+  port: 9000
+  servlet:
+    session:
+      # Cookies are shared between ports on localhost: give this application its own session cookie,
+      # otherwise it logs out the kingdom (and the other way round).
+      cookie:
+        name: FAKEIDP_SESSION
+
+spring:
+  application:
+    name: fake-idp
+  main:
+    banner-mode: log
+
+logging:
+  level:
+    org.springframework.security: INFO

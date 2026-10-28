@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: king-main-and-his-kingdom
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+
+person:
+  default-name: Maximus
+  default-age: 18
+
+kingdom:
+  seed:
+    enabled: true
+  security:
+    # Development default. Override with the KINGDOM_SECURITY_JWT_SECRET environment variable anywhere else.
+    jwt-secret: change-me-this-is-a-development-secret-key
+    jwt-ttl: 1h
+    cors-allowed-origins:
+      - http://localhost:4200

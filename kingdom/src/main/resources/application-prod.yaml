@@ -1,0 +1,8 @@
+person:
+  default-name: John
+  default-age: 20
+
+kingdom:
+  security:
+    # no default on purpose: the application refuses to start without a real secret
+    jwt-secret: ${KINGDOM_SECURITY_JWT_SECRET}
